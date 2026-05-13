@@ -4,29 +4,31 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Briefcase, Github, Mail } from "lucide-react";
+import { Briefcase, Globe, Mail, AlertCircle } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const { login, loginSocial } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
+    setError("");
+    
+    const result = login(email, password);
+    if (!result.success) {
+      setError(result.message);
       setIsLoading(false);
-      router.push("/dashboard");
-    }, 1500);
+    }
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-secondary/30 p-6 relative overflow-hidden">
-      {/* Decorative blobs */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10 -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10 translate-y-1/2 -translate-x-1/2" />
 
@@ -43,6 +45,12 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="bg-red-50 text-red-500 p-3 rounded-lg flex items-center gap-2 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
             <div className="space-y-2">
               <label className="text-sm font-medium">Email Address</label>
               <Input 
@@ -81,11 +89,11 @@ export default function Login() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="gap-2">
-              <Github className="w-4 h-4" />
+            <Button variant="outline" className="gap-2" onClick={() => loginSocial("github")}>
+              <Globe className="w-4 h-4" />
               Github
             </Button>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => loginSocial("google")}>
               <Mail className="w-4 h-4" />
               Google
             </Button>

@@ -37,7 +37,7 @@ export default function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-          <Link href="/jobs" className="hover:text-primary transition-colors">Browse Jobs</Link>
+          <Link href="/recommendations" className="hover:text-primary transition-colors">Browse Jobs</Link>
           <Link href="/analyzer" className="hover:text-primary transition-colors">Resume Analyzer</Link>
           <Link href="/about" className="hover:text-primary transition-colors">About Us</Link>
         </div>
@@ -66,7 +66,7 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-background border-b border-border p-6 flex flex-col gap-4 animate-in">
-          <Link href="/jobs" onClick={() => setMobileMenuOpen(false)}>Browse Jobs</Link>
+          <Link href="/recommendations" onClick={() => setMobileMenuOpen(false)}>Browse Jobs</Link>
           <Link href="/analyzer" onClick={() => setMobileMenuOpen(false)}>Resume Analyzer</Link>
           <Link href="/about" onClick={() => setMobileMenuOpen(false)}>About Us</Link>
           <hr className="border-border" />

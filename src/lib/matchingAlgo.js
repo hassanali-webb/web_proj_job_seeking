@@ -1,84 +1,77 @@
 /**
- * Smart Match Algorithm for matching resumes against job listings.
- * 
- * Weights:
- * - Skills: 40%
- * - Experience: 30%
- * - Education: 10%
- * - Certifications: 10%
- * - Keywords: 10%
+ * Career-Track Aware Matching Algorithm
  */
 
 export function calculateMatch(resume, job) {
+  if (!resume || !job) {
+    return { score: 0, reasons: ["Insufficient data for matching"], matchedSkills: [], missingSkills: [] };
+  }
+
   let score = 0;
   const reasons = [];
+  
+  // 1. Primary Category Alignment (40%)
+  // Map job categories to our internal skill categories
+  const categoryMap = {
+    "DevOps": "DevOps & Infrastructure",
+    "Cloud": "DevOps & Infrastructure",
+    "Frontend": "Frontend Development",
+    "Backend": "Backend Development",
+    "Full Stack": "Backend Development",
+    "AI/ML": "Data & AI"
+  };
 
-  // 1. Skills Matching (40%)
-  const jobSkills = job.skills.map(s => s.toLowerCase());
-  const resumeSkills = resume.skills.map(s => s.toLowerCase());
-  
-  const matchedSkills = jobSkills.filter(skill => 
-    resumeSkills.some(rs => rs.includes(skill) || skill.includes(rs))
-  );
-  
-  const skillScore = (matchedSkills.length / jobSkills.length) * 40;
-  score += skillScore;
-  
-  if (matchedSkills.length > 0) {
-    reasons.push(`Matched ${matchedSkills.length} key skills: ${matchedSkills.slice(0, 3).join(", ")}...`);
-  }
-
-  // 2. Experience Matching (30%)
-  // Simple heuristic: compare years of experience
-  const jobExpYears = parseInt(job.experience) || 0;
-  const resumeExpYears = resume.experienceYears || 0;
-  
-  if (resumeExpYears >= jobExpYears) {
-    score += 30;
-    reasons.push("Meets or exceeds experience requirements.");
-  } else if (resumeExpYears >= jobExpYears * 0.7) {
-    score += 20;
-    reasons.push("Experience level is close to requirements.");
+  const jobInternalCategory = categoryMap[job.category] || "";
+  if (jobInternalCategory === resume.primaryCategory) {
+    score += 40;
+    reasons.push(`Perfect career track alignment: ${resume.primaryCategory}`);
   } else {
-    score += 10;
+    score += 10; // Partial credit for industry overlap
   }
 
-  // 3. Education Matching (10%)
-  const educationKeywords = ["degree", "bachelor", "master", "phd", "university"];
-  const hasEducation = resume.education && resume.education.length > 0;
-  if (hasEducation) {
-    score += 10;
-    reasons.push("Education background matches industry standards.");
-  }
-
-  // 4. Keywords Matching (20%) - Combined Certifications & Keywords for simplicity
-  const resumeKeywords = [...resume.skills, ...resume.certifications || []].map(k => k.toLowerCase());
-  const jobKeywords = [...job.skills, job.title, job.category].map(k => k.toLowerCase());
+  // 2. Specific Skill Matching (40%)
+  const jobSkills = (job.skills || []).map(s => s.toLowerCase());
+  const resumeSkills = (resume.skills || []).map(s => s.toLowerCase());
   
-  const keywordOverlap = jobKeywords.filter(k => resumeKeywords.includes(k));
-  if (keywordOverlap.length > 2) {
-    score += 20;
-    reasons.push("Strong keyword alignment with job description.");
+  if (jobSkills.length === 0) {
+    score += 15; // Baseline for general alignment
+    reasons.push("General role alignment detected");
+    var matched = [];
   } else {
-    score += 10;
+    var matched = jobSkills.filter(js => resumeSkills.some(rs => rs.includes(js) || js.includes(rs)));
+    const skillScore = (matched.length / jobSkills.length) * 40;
+    score += skillScore;
+  }
+  
+  if (matched.length > 0) {
+    reasons.push(`Matched key technologies: ${matched.join(", ")}`);
   }
 
-  // Cap score at 100
-  const finalScore = Math.min(Math.round(score), 100);
+  // 3. Seniority & Experience (20%)
+  const jobExp = parseInt(job.experience) || 0;
+  if (resume.experienceYears >= jobExp) {
+    score += 20;
+    reasons.push("Experience level meets or exceeds requirements");
+  }
 
   return {
-    score: finalScore,
+    score: Math.min(Math.round(score), 100),
     reasons,
-    missingSkills: jobSkills.filter(s => !matchedSkills.includes(s))
+    matchedSkills: matched,
+    missingSkills: jobSkills.filter(js => !matched.includes(js))
   };
 }
 
-export function getTopRecommendations(resume, allJobs) {
-  return allJobs
-    .map(job => ({
-      ...job,
-      match: calculateMatch(resume, job)
-    }))
-    .sort((a, b) => b.match.score - a.match.score)
-    .slice(0, 10);
+export function getAllJobRecommendations(resume, allJobs) {
+  const processed = allJobs.map(job => ({
+    ...job,
+    match: calculateMatch(resume, job)
+  }));
+
+  processed.sort((a, b) => b.match.score - a.match.score);
+
+  return processed.map((job, index) => ({
+    ...job,
+    isRecommended: index < 5 && job.match.score > 60
+  }));
 }

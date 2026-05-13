@@ -8,7 +8,8 @@ import {
   Zap, 
   TrendingUp, 
   ShieldCheck,
-  Star
+  Star,
+  Briefcase
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -46,7 +47,7 @@ export default function Home() {
                 Upload Your Resume
               </Button>
             </Link>
-            <Link href="/jobs">
+            <Link href="/recommendations">
               <Button variant="outline" size="lg" className="px-10 h-14 text-lg">
                 Browse Live Jobs
               </Button>

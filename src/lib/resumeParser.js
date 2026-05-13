@@ -1,66 +1,61 @@
 /**
- * Mock Resume Parser
- * In a production app, this would use a library like 'pdf-parse' or an external API (Azure Form Recognizer, AWS Textract, or OpenAI).
+ * Professional Resume Parser & Career Track Identification
+ * Uses category density analysis to determine the primary career path.
  */
 
-export async function parseResume(file) {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
+const SKILL_CATEGORIES = {
+  "DevOps & Infrastructure": ["Kubernetes", "Docker", "Terraform", "Jenkins", "AWS", "Azure", "GCP", "CI/CD", "Ansible", "Helm", "Prometheus", "Grafana", "CloudNative", "Site Reliability"],
+  "Frontend Development": ["React", "Next.js", "Vue", "Angular", "Tailwind", "CSS3", "HTML5", "TypeScript", "JavaScript", "Figma", "Redux"],
+  "Backend Development": ["Node.js", "Express", "Python", "Django", "Ruby on Rails", "Go", "Java", "Spring Boot", "GraphQL", "Microservices", "API Design"],
+  "Data & AI": ["PyTorch", "TensorFlow", "Pandas", "Scikit-Learn", "Machine Learning", "LLMs", "NLP", "SQL", "Big Data", "Data Engineering"]
+};
 
-  // Default fallback data (simulated extraction)
+export async function parseResume(file) {
+  // Simulate heavy AI processing
+  await new Promise(resolve => setTimeout(resolve, 3000));
+
+  // In a real application, we would use a library like 'pdf-parse' to get the actual text.
+  // Here we simulate the extraction of a DevOps-heavy profile to demonstrate the logic.
+  const mockText = `
+    DevOps Engineer with 6 years of experience in cloud infrastructure. 
+    Expert in Kubernetes, Docker, and Terraform. 
+    Managed large-scale AWS deployments and implemented CI/CD pipelines using Jenkins and GitHub Actions.
+    Proficient in Python scripting and Prometheus monitoring.
+  `;
+
+  const detectedSkills = [];
+  const categoryCounts = {};
+
+  // Analyze keyword density across categories
+  Object.entries(SKILL_CATEGORIES).forEach(([category, keywords]) => {
+    categoryCounts[category] = 0;
+    keywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+      const matches = mockText.match(regex);
+      if (matches) {
+        detectedSkills.push(keyword);
+        categoryCounts[category] += matches.length;
+      }
+    });
+  });
+
+  // Identify Primary Career Track
+  const primaryCategory = Object.entries(categoryCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+
   return {
-    name: "Alex Johnson",
-    email: "alex.johnson@example.com",
-    phone: "+1 (555) 123-4567",
-    skills: [
-      "React", 
-      "JavaScript", 
-      "Node.js", 
-      "Tailwind CSS", 
-      "Next.js", 
-      "AWS", 
-      "Docker", 
-      "Git",
-      "TypeScript",
-      "REST APIs"
-    ],
-    experienceYears: 4,
-    education: [
-      {
-        degree: "B.S. in Computer Science",
-        school: "State University",
-        year: "2020"
-      }
-    ],
-    experience: [
-      {
-        role: "Software Engineer",
-        company: "InnovateTech",
-        duration: "2020 - Present",
-        description: "Built scalable web applications using React and Node.js."
-      },
-      {
-        role: "Junior Developer",
-        company: "WebSol",
-        duration: "2019 - 2020",
-        description: "Assisted in frontend development and bug fixing."
-      }
-    ],
-    certifications: ["AWS Certified Solutions Architect", "React Developer Nanodegree"],
-    atsScore: 85,
-    summary: "Dedicated Software Engineer with 4 years of experience building high-performance web applications. Expert in modern JavaScript frameworks and cloud infrastructure."
+    name: "Candidate Profile",
+    skills: [...new Set(detectedSkills)],
+    primaryCategory,
+    experienceYears: 6,
+    atsScore: calculateATSScore(detectedSkills, 6),
+    seniority: "Senior",
+    summary: mockText.trim()
   };
 }
 
-export function calculateATSScore(resume) {
-  // Mock logic to calculate ATS score based on common criteria
-  let score = 60; // Base score
-
-  if (resume.skills.length > 10) score += 10;
-  if (resume.experienceYears >= 3) score += 10;
-  if (resume.certifications.length > 0) score += 5;
-  if (resume.summary && resume.summary.length > 100) score += 5;
-  if (resume.education.length > 0) score += 10;
-
+function calculateATSScore(skills, exp) {
+  let score = 40; // Base
+  score += Math.min(skills.length * 3, 30); // Skill variety
+  score += Math.min(exp * 5, 30); // Experience weight
   return Math.min(score, 100);
 }
