@@ -36,15 +36,24 @@ export default function ResumeUpload() {
     setIsUploading(true);
     
     try {
-      const result = await parseResume(file);
-      
-      const response = await fetch("/api/resume", {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, resumeData: result })
+        body: formData
       });
 
       if (response.ok) {
+        const result = await response.json();
+        
+        // Save result to DB
+        await fetch("/api/resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id, resumeData: result })
+        });
+
         setAnalysis(result);
         setIsAnalyzed(true);
       }
@@ -107,7 +116,7 @@ export default function ResumeUpload() {
                   </div>
                 </div>
                 <Button variant="secondary" size="lg" className="h-14 px-8 font-bold" onClick={() => router.push("/recommendations")}>
-                  See DevOps Jobs <ArrowRight className="ml-2" />
+                  See {analysis.primaryCategory} Jobs <ArrowRight className="ml-2" />
                 </Button>
               </div>
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
